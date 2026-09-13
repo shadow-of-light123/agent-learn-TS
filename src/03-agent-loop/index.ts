@@ -14,9 +14,20 @@
  *
  * 「何时继续、何时收工」由模型自己决定 —— 这就是"自主决策"的全部含义。
  * 你接下来写的这 100 行，就是 LangChain / Vercel AI SDK 里 agent 引擎的雏形。
+ *
+ * ── 本课的加固：用 zod 校验模型给的参数 ──
+ *
+ * 模型的 arguments 是从网络过来的、不可信的字符串。TypeScript 的类型编译后就没了，
+ * 管不住它。zod schema 是真实存在的对象，运行时能真的去检查，而且一份定义同时产出：
+ *
+ *   ① 发给模型的 JSON Schema（z.toJSONSchema）
+ *   ② 运行时校验器（safeParse）
+ *   ③ execute 参数的类型（z.infer）
+ *
+ * 出错不再静默 —— 校验失败会把原因回传给模型，它能看懂并自己改对重试。
  */
 
-export {}
+import { z } from 'zod'
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
@@ -33,65 +44,105 @@ interface Message {
 
 // ---------- 工具注册表：定义 + 实现写在一起，单一数据源 ----------
 
-interface Tool {
+interface Tool<S extends z.ZodType> {
   description: string
-  parameters: Record<string, unknown> // JSON Schema
-  execute: (args: any) => string
+  argsSchema: S // 既是给模型看的 JSON Schema 来源，也是运行时校验器
+  execute: (args: z.infer<S>) => string
 }
 
-const toolRegistry: Record<string, Tool> = {
-  get_weather: {
+// 查找时用的宽松视图：工具名要运行时才知道，参数在 executeTool 里已经校验过了
+type AnyTool = Tool<any>
+
+// 这个小函数的作用是让 TS 把 argsSchema 和 execute 的参数连起来 ——
+// 有了它，下面 execute 里的解构不用手写类型，改 schema 会自动跟着变
+function defineTool<S extends z.ZodType>(tool: Tool<S>): Tool<S> {
+  return tool
+}
+
+const toolRegistry = {
+  get_weather: defineTool({
     description: '查询指定城市的实时天气',
-    parameters: {
-      type: 'object',
-      properties: { city: { type: 'string', description: '城市名' } },
-      required: ['city'],
-    },
-    execute: ({ city }: { city: string }) => {
+    argsSchema: z.object({
+      city: z.string().min(1).describe('城市名，如 北京'),
+    }),
+    execute: ({ city }) => {
       const data: Record<string, string> = {
         北京: '晴，12°C，空气质量优，风力 3 级',
         上海: '多云，18°C，空气质量良，湿度 80%',
       }
       return JSON.stringify({ city, weather: data[city] ?? '暂无数据' })
     },
-  },
-  calculate: {
+  }),
+
+  calculate: defineTool({
     description: '计算一个数学表达式，返回数值结果',
-    parameters: {
-      type: 'object',
-      properties: { expression: { type: 'string', description: '数学表达式，如 (12-18)*1.8' } },
-      required: ['expression'],
-    },
-    execute: ({ expression }: { expression: string }) => {
-      // 教学演示用 Function 求值，生产环境请用 expr-eval 等库并做输入校验
+    argsSchema: z.object({
+      // 模型输出不可信，先用字符白名单卡住，别让任意 JS 进 new Function
+      expression: z
+        .string()
+        .regex(/^[0-9+\-*/().\s]+$/, '只允许由数字和 + - * / ( ) 组成的算式')
+        .describe('数学表达式，如 (12-18)*1.8'),
+    }),
+    execute: ({ expression }) => {
+      // 前面的正则已经卡住字符集，这里只是求值；生产环境仍建议换成 expr-eval 之类的解析器
       const value = new Function(`return (${expression})`)()
       return JSON.stringify({ expression, value })
     },
-  },
-  get_current_time: {
+  }),
+
+  get_current_time: defineTool({
     description: '获取当前日期和时间',
-    parameters: { type: 'object', properties: {} },
+    argsSchema: z.object({}),
     execute: () => JSON.stringify({ now: new Date().toLocaleString('zh-CN') }),
-  },
+  }),
 }
 
-// 从注册表自动生成 API 需要的工具清单（改一处，两边同步 —— 和你封装的配置驱动表格是同一个思想）
+const registry: Record<string, AnyTool> = toolRegistry
+
+// 从注册表自动生成 API 需要的工具清单 —— JSON Schema 交给 zod 生成，不再手写
+function toToolSchema(schema: z.ZodType): Record<string, unknown> {
+  // 去掉 $schema 字段：模型 API 只关心结构本身，多带这个字段有些供应商会不认
+  const { $schema, ...rest } = z.toJSONSchema(schema) as Record<string, unknown>
+  return rest
+}
+
 const toolDefs = Object.entries(toolRegistry).map(([name, t]) => ({
   type: 'function',
-  function: { name, description: t.description, parameters: t.parameters },
+  function: {
+    name,
+    description: t.description,
+    parameters: toToolSchema(t.argsSchema),
+  },
 }))
 
 // ---------- 通用的工具执行器：不管是什么工具，统一这一套流程 ----------
 
 function executeTool(toolCall: { id: string; function: { name: string; arguments: string } }): string {
-  const tool = toolRegistry[toolCall.function.name]
+  const tool = registry[toolCall.function.name]
   if (!tool) {
     return JSON.stringify({ error: `未知工具: ${toolCall.function.name}` })
   }
+
+  // 第一关：模型的 arguments 是一段文本，先确认它是合法 JSON
+  let raw: unknown
   try {
-    return tool.execute(JSON.parse(toolCall.function.arguments))
+    raw = JSON.parse(toolCall.function.arguments)
+  } catch {
+    return JSON.stringify({ error: `参数不是合法 JSON: ${toolCall.function.arguments}` })
+  }
+
+  // 第二关：用 schema 卡住结构和类型 —— 这一步 TypeScript 类型做不到，只有运行时才拦得住
+  const parsed = tool.argsSchema.safeParse(raw)
+  if (!parsed.success) {
+    // 不抛异常，而是把失败原因回传给模型 —— 它看到具体哪里错了就能自己改对重试
+    return JSON.stringify({ error: `参数校验失败: ${parsed.error.message}` })
+  }
+
+  try {
+    // parsed.data 是校验通过的数据，往下可以放心用
+    return tool.execute(parsed.data)
   } catch (e) {
-    // 把错误信息返回给模型而不是直接崩溃 —— 模型看到错误可以自己调整重试
+    // 工具本身执行时炸了，同样交给模型决定怎么办
     return JSON.stringify({ error: String(e) })
   }
 }
