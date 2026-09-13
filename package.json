@@ -6,7 +6,8 @@
   "scripts": {
     "l1": "node --env-file-if-exists=.env --import tsx src/01-hello-llm/index.ts",
     "l1:stream": "node --env-file-if-exists=.env --import tsx src/01-hello-llm/stream.ts",
-    "l2": "node --env-file-if-exists=.env --import tsx src/02-tool-calling/index.ts"
+    "l2": "node --env-file-if-exists=.env --import tsx src/02-tool-calling/index.ts",
+    "l3": "node --env-file-if-exists=.env --import tsx src/03-agent-loop/index.ts"
   },
   "devDependencies": {
     "@types/node": "^26.5.1",
