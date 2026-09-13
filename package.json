@@ -1,0 +1,16 @@
+{
+  "name": "agent-learn",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "l1": "node --env-file-if-exists=.env --import tsx src/01-hello-llm/index.ts",
+    "l1:stream": "node --env-file-if-exists=.env --import tsx src/01-hello-llm/stream.ts",
+    "l2": "node --env-file-if-exists=.env --import tsx src/02-tool-calling/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
