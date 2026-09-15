@@ -13,19 +13,51 @@
 | 02 | Tool Calling | 函数调用协议、模型如何「调用」你的代码 | ✅ |
 | 03 | Agent Loop | while 循环 + 工具 + 自主决策，第一个真 Agent | ✅ |
 | 04 | Memory | 会话历史管理、上下文窗口、摘要压缩 | ✅ |
-| 05 | RAG | Embedding、向量检索、给 Agent 外挂知识库 | |
-| 06 | MCP | Model Context Protocol，工具的标准化协议 | |
-| 07 | Multi-Agent | 规划者/执行者、子 Agent、任务编排 | |
+| 05 | RAG | Embedding、向量检索、给 Agent 外挂知识库 | ✅ |
+| 06 | MCP | Model Context Protocol，工具的标准化协议 | ✅ |
+| 07 | Multi-Agent | 规划者/执行者、子 Agent、上下文隔离 | ✅ |
 | 08 | Framework | 用 LangChain.js 复刻前面所学（手写 vs 框架对照） | ✅ |
 
 ## 运行方式
 
 ```bash
 npm install
-# 配置 API Key（DeepSeek）
+# 配置 API Key（DeepSeek + 硅基流动，见 .env.example）
 cp .env.example .env   # 然后填入你的 key
-npm run l1
 ```
+
+每课都有独立入口，直接跑即可：
+
+```bash
+# 01 ~ 08 主线
+npm run l1     # Hello LLM（+ npm run l1:stream 看流式）
+npm run l2     # Tool Calling
+npm run l3     # Agent Loop
+npm run l4     # Memory（+ npm run l4:test 用管道输入复现压缩）
+npm run l5     # RAG：朴素 RAG 与 Agentic RAG 两种接法（+ npm run l5:test）
+npm run l6:agent  # MCP：接上外部工具跑 Agent Loop
+npm run l7     # Multi-Agent（默认跑子 Agent 那档）
+npm run l8     # Framework：用 LangChain 复刻（+ npm run l8:stream）
+
+# 单独看某一层
+npm run l5:explore   # 只看检索层，不调 LLM —— 先确认检索准不准
+npm run l6:raw       # 手写 JSON-RPC 的 MCP，原始报文肉眼可见
+npm run l6:sdk       # 同一个 server 用官方 SDK 重写，做对照
+```
+
+第 05 课需要额外的 embedding 服务（DeepSeek 没有 embedding 接口），
+用硅基流动的 `BAAI/bge-m3`，在 `.env` 里填 `SILICONFLOW_API_KEY`。
+
+第 07 课按档跑：
+
+```bash
+npm run l7 -- 1      # 单 Agent 硬扛
+npm run l7 -- 1 8    # 同上，但城市数提到 8（看上下文怎么被撑爆）
+npm run l7 -- 2      # 规划者 / 执行者
+npm run l7           # 子 Agent（默认，本课落点）
+```
+
+> 第 07 课的三个 demo 都是多轮 LLM 调用，**别一次全跑** —— 又慢又烧钱。
 
 ## 你已有的基础如何对应
 
