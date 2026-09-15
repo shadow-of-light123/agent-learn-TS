@@ -16,6 +16,7 @@
     "l6:raw": "node --env-file-if-exists=.env --import tsx src/06-mcp/client-raw.ts",
     "l6:sdk": "node --env-file-if-exists=.env --import tsx src/06-mcp/client-sdk.ts",
     "l6:agent": "node --env-file-if-exists=.env --import tsx src/06-mcp/agent.ts",
+    "l7": "node --env-file-if-exists=.env --import tsx src/07-multi-agent/index.ts",
     "l8": "node --env-file-if-exists=.env --import tsx src/08-framework/index.ts",
     "l8:stream": "node --env-file-if-exists=.env --import tsx src/08-framework/stream.ts"
   },
