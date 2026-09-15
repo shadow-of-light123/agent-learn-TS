@@ -13,6 +13,9 @@
     "l5": "node --env-file-if-exists=.env --import tsx src/05-rag/index.ts",
     "l5:explore": "node --env-file-if-exists=.env --import tsx src/05-rag/explore.ts",
     "l5:test": "node --env-file-if-exists=.env --import tsx src/05-rag/index.ts < src/05-rag/test-input.txt",
+    "l6:raw": "node --env-file-if-exists=.env --import tsx src/06-mcp/client-raw.ts",
+    "l6:sdk": "node --env-file-if-exists=.env --import tsx src/06-mcp/client-sdk.ts",
+    "l6:agent": "node --env-file-if-exists=.env --import tsx src/06-mcp/agent.ts",
     "l8": "node --env-file-if-exists=.env --import tsx src/08-framework/index.ts",
     "l8:stream": "node --env-file-if-exists=.env --import tsx src/08-framework/stream.ts"
   },
@@ -25,6 +28,8 @@
     "@langchain/core": "^1.2.11",
     "@langchain/langgraph": "^1.4.15",
     "@langchain/openai": "^1.5.13",
+    "@modelcontextprotocol/client": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "langchain": "^1.5.11",
     "zod": "^4.6.4"
   }
