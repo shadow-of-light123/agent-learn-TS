@@ -1,2 +1,5 @@
 node_modules/
 .env
+
+# 第 5 课：embedding 索引缓存（首次跑会生成，不必提交）
+src/05-rag/.cache/
