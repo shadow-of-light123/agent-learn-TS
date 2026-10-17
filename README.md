@@ -17,6 +17,7 @@
 | 06 | MCP | Model Context Protocol，工具的标准化协议 | ✅ |
 | 07 | Multi-Agent | 规划者/执行者、子 Agent、上下文隔离 | ✅ |
 | 08 | Framework | 用 LangChain.js 复刻前面所学（手写 vs 框架对照） | ✅ |
+| 09 | Plan-and-Execute | Planner / Executor / Replanner 三角色，三个旋钮的实测对账 | ✅ |
 
 ## 运行方式
 
@@ -29,7 +30,7 @@ cp .env.example .env   # 然后填入你的 key
 每课都有独立入口，直接跑即可：
 
 ```bash
-# 01 ~ 08 主线
+# 01 ~ 09 主线
 npm run l1     # Hello LLM（+ npm run l1:stream 看流式）
 npm run l2     # Tool Calling
 npm run l3     # Agent Loop
@@ -38,6 +39,7 @@ npm run l5     # RAG：朴素 RAG 与 Agentic RAG 两种接法（+ npm run l5:te
 npm run l6:agent  # MCP：接上外部工具跑 Agent Loop
 npm run l7     # Multi-Agent（默认跑子 Agent 那档）
 npm run l8     # Framework：用 LangChain 复刻（+ npm run l8:stream）
+npm run l9     # Plan-and-Execute（默认跑完整三角色）
 
 # 单独看某一层
 npm run l5:explore   # 只看检索层，不调 LLM —— 先确认检索准不准
@@ -58,6 +60,18 @@ npm run l7           # 子 Agent（默认，本课落点）
 ```
 
 > 第 07 课的三个 demo 都是多轮 LLM 调用，**别一次全跑** —— 又慢又烧钱。
+
+第 09 课也是多轮调用，同样按档跑：
+
+```bash
+npm run l9        # 完整三角色：Planner → Executor(纯代码) → Replanner
+npm run l9 -- 2   # 换执行器粒度：每步一个子 Agent（跑完会跟粒度 1 对账）
+npm run l9 -- 3   # 换重规划时机：每步都 replan（跑完会跟每轮 replan 对账）
+```
+
+> 第 09 课跟第 07 课 demo 2 是**同一道题**（对比北京/上海/广州，广州数据源必然失败），
+> 可以直接对照着看：07 课有 Planner + Executor 但缺 Replanner，
+> 09 课补上的正是"何时收工由模型自己决定"这半个角色。
 
 ## 你已有的基础如何对应
 
