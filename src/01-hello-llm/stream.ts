@@ -21,7 +21,7 @@ interface Message {
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 async function chatStream(messages: Message[]): Promise<void> {
   const res = await fetch(`${BASE_URL}/chat/completions`, {

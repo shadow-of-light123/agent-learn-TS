@@ -36,7 +36,7 @@ import { z } from 'zod'
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 type Role = 'system' | 'user' | 'assistant' | 'tool'
 
@@ -212,7 +212,10 @@ function estimateTokens(messages: Message[]): number {
 
 // ---------- Memory 核心 2：摘要压缩（compaction） ----------
 
-// demo 故意用一个很小的预算，几轮对话就能看到压缩；真实模型窗口是 64K 起步
+// demo 故意用一个很小的预算，几轮对话就能看到压缩。
+// 真实模型（deepseek-flash）的量级：上下文长度 1M，单次输出上限 384K（也就是 max_tokens 的上限）。
+// ★ 两个数字要一起看：1M 是「输入 + 输出」的总和，不是输入能独占的额度。
+//   请求里还得给 max_tokens 留位置，所以输入预算天生要比窗口小一截 —— 别按 1M 满打满算。
 const TOKEN_BUDGET = Number(process.env.TOKEN_BUDGET ?? 1800)
 const KEEP_RECENT = 6 // 第一档：压缩后尽量保留最近 N 条原始消息
 const COMPACT_TIERS = [KEEP_RECENT, 0] // 第二档保留 0 条 = 只留"当前这一轮"

@@ -20,7 +20,7 @@ interface Message {
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 if (!API_KEY) {
   console.error('缺少 DEEPSEEK_API_KEY，请在 .env 文件中配置')

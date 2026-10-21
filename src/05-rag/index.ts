@@ -60,7 +60,7 @@ const CACHE_FILE = path.join(HERE, '.cache', 'embeddings.json')
 // 对话模型：还是 DeepSeek（跟第 1~4 课一样）
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 // 嵌入模型：换成硅基流动。★ 注意 base_url 带 /v1，和上面的 DeepSeek 不一样
 const EMB_BASE_URL = process.env.SILICONFLOW_BASE_URL ?? 'https://api.siliconflow.cn/v1'

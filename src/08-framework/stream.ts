@@ -29,7 +29,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 const model = new ChatOpenAI({
   model: MODEL,

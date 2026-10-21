@@ -32,7 +32,7 @@ import { z } from 'zod'
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 // 第 3 课跑过的那道题。四个 demo 都用它，好让你直接对照输出。
 const QUESTION = '查一下北京和上海现在的天气，哪个城市更适合跑步？两地温差是多少摄氏度？请用计算工具算温差。'
@@ -55,7 +55,7 @@ function banner(text: string) {
 //   所以只要告诉 LangChain「按 openai 的协议打这个地址」就行。
 //   这也是换模型供应商往往只改一行配置的原因 —— 协议是通用的，差异被吃掉了。
 //
-// （等价写法：initChatModel('deepseek-chat', { modelProvider: 'openai', baseUrl: BASE_URL })，
+// （等价写法：initChatModel('deepseek-flash', { modelProvider: 'openai', baseUrl: BASE_URL })，
 //   字符串版的简写，适合配置驱动的场景。这里用显式的 ChatOpenAI，对照更清楚。）
 
 const model = new ChatOpenAI({

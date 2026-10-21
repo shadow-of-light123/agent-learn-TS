@@ -53,7 +53,7 @@ const SERVER_PATH = path.join(HERE, 'server-sdk.ts')
 // 对话模型还是 DeepSeek（跟第 1~5 课一样）。MCP 管的是工具，不管模型。
 const BASE_URL = process.env.DEEPSEEK_BASE_URL ?? 'https://api.deepseek.com'
 const API_KEY = process.env.DEEPSEEK_API_KEY
-const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'
+const MODEL = process.env.DEEPSEEK_MODEL ?? 'deepseek-flash'
 
 type Role = 'system' | 'user' | 'assistant' | 'tool'
 

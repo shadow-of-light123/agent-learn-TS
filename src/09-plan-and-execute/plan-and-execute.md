@@ -263,7 +263,7 @@ console.log(answer)
 
 - 任务天然分阶段，且阶段划分在开始时就大体可知（调研 → 计算 → 汇总）
 - 需要人审查计划再放行（计划是数据，可以插入审批 UI——这是 ReAct 做不到的，ReAct 的"计划"散在每轮决策里，不可截获）
-- 想用大小模型分工省钱（Planner 用 deepseek-reasoner 级别，Executor 用 flash 级别）
+- 想用大小模型分工省钱（Planner 用 deepseek-v4-pro 级别，Executor 用 deepseek-flash 级别）
 - 步骤间可并行（无依赖步骤 `Promise.all`，07 课 demo 3 的并行收益直接继承）
 
 **不用：**
