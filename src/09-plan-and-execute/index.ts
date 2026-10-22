@@ -411,7 +411,7 @@ interface StepRecord {
 }
 
 async function replan(goal: string, past: StepRecord[], remaining: PlanStep[], meter: Meter): Promise<ReplanResult> {
-  // ★ 5：past_steps 全量塞进来。短任务没问题，长任务上它自己也会膨胀 ——
+  // ★ 5（见文件头）：past_steps 全量塞进来。短任务没问题，长任务上它自己也会膨胀 ——
   //   那时候就该按第 4 课的办法，把每步结果先压成一句话再传。
   //   原则是「传结论，不传原文」：Replanner 不需要重看那 900 字明细。
   const done = past.map((s, i) => `${i + 1}. ${s.ok ? '✓' : '✗'} ${s.action}\n   结果：${s.result}`).join('\n')
@@ -429,8 +429,8 @@ async function replan(goal: string, past: StepRecord[], remaining: PlanStep[], m
 
 // ---------- ④ 主循环：Plan → Execute → Replan ----------
 
-const MAX_REPLAN = 6 // ★ 4：熔断保险丝，防止 Replanner 无限改计划
-const PAST_CHARS_WARN = 4000 // ★ 5：past_steps 膨胀到多少字，就在屏幕上提醒你该摘要了
+const MAX_REPLAN = 6 // ★ 4（见文件头）：熔断保险丝，防止 Replanner 无限改计划
+const PAST_CHARS_WARN = 4000 // ★ 5（见文件头）：past_steps 膨胀到多少字，就在屏幕上提醒你该摘要了
 
 type ReplanTiming = 'per-round' | 'per-step'
 
@@ -477,7 +477,7 @@ async function planAndExecute(goal: string, opts: RunOptions): Promise<RunResult
   // 而不是继续跑旧计划剩下的步骤。
   outer: for (let round = 0; round <= MAX_REPLAN; round++) {
     const key = planKey(plan)
-    // ★ 4：Replanner 有可能会给出跟上一轮一模一样的计划。不管它，你就得到了
+    // ★ 4（见文件头）：Replanner 有可能会给出跟上一轮一模一样的计划。不管它，你就得到了
     //   一个烧钱的死循环。熔断 + 明确的告警，比"跑着看"强。
     if (key === lastKey) {
       console.log('\n  ★ 熔断：重规划者给出了跟上一轮完全相同的计划，继续跑只会原地打转。')

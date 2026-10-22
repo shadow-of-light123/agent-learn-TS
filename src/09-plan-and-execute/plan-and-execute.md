@@ -192,7 +192,7 @@ async function replan(
 
 // ---------- ⑤ 主循环：Plan → Execute → Replan ----------
 
-const MAX_REPLAN = 4 // 保险丝：防止 replanner 无限改计划
+const MAX_REPLAN = 6 // 保险丝：防止 replanner 无限改计划
 
 async function planAndExecute(goal: string): Promise<string> {
   const meter = newMeter('Plan-and-Execute')
