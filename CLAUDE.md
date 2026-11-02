@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目定位
 
-一个中文「从零手写 Agent」教程仓库。用 TypeScript + Node 原生 `fetch` 直调 LLM API，**刻意不抽公共模块**：每一课的文件都自成一体，可以单独打开阅读、单独运行。课程按 01→09 递进，后一课会重复前一课的部分代码，这是为了教学可读性，不是技术债 —— 重构前先确认这是你想要的改动。
+一个中文「从零手写 Agent」教程仓库。用 TypeScript + Node 原生 `fetch` 直调 LLM API，**刻意不抽公共模块**：每一课的文件都自成一体，可以单独打开阅读、单独运行。课程按 01→10 递进，后一课会重复前一课的部分代码，这是为了教学可读性，不是技术债 —— 重构前先确认这是你想要的改动。
 
 每课文件头的长注释是教材正文（含大量 `★` 标记的核心认知和踩坑记录），修改代码时要同步维护，不要当成普通注释删掉。
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install
 cp .env.example .env      # 填 DEEPSEEK_API_KEY + SILICONFLOW_API_KEY
 
-npm run l1                # 各课主入口，l1 ~ l9
+npm run l1                # 各课主入口，l1 ~ l10
 npm run l1:stream         # 单轮 SSE 流式
 npm run l4:test           # 用管道喂 test-input.txt，复现摘要压缩
 npm run l5:test           # 用管道喂 test-input.txt，非交互跑完三个 demo（含"语料里没有"的诚实性检查）
@@ -23,6 +23,7 @@ npm run l6:raw            # 手写 JSON-RPC 的 MCP，打印原始报文
 npm run l6:sdk            # 同一 server 的官方 SDK 版
 npm run l6:agent          # MCP 工具接进 Agent Loop
 npm run l8:stream         # LangChain 事件流
+npm run l10               # LangGraph，默认只跑 Demo 1（最小图），分档见下
 ```
 
 分档参数用 `--` 透传，例如：
@@ -31,6 +32,9 @@ npm run l8:stream         # LangChain 事件流
 npm run l7 -- 1 8         # 第 7 课 demo 1，城市数 8
 npm run l7 -- 2           # 规划者/执行者
 npm run l9 -- 2           # 第 9 课换执行器粒度（跑完自动对账）
+npm run l10 -- 2          # 第 10 课 ReAct 循环图（★ 本课重点）
+npm run l10 -- 3          # 人环中断/恢复
+npm run l10 -- 4          # plan-execute 图化并对账
 ```
 
 临时覆盖环境变量（PowerShell 语法）：
@@ -49,7 +53,7 @@ npx tsc --noEmit
 
 > **需要 Node 22.9+**：`--env-file-if-exists` 是 v22.9 才加的，低版本上所有入口都会直接报 bad option，而不是"忽略 .env"。
 
-> 第 5 课必须有 `SILICONFLOW_API_KEY`（DeepSeek 无 embedding 接口）。第 7、9 课每个 demo 都是多轮 LLM 调用，**别一次全跑**。
+> 第 5 课必须有 `SILICONFLOW_API_KEY`（DeepSeek 无 embedding 接口）。第 7、9、10 课每个 demo 都是多轮 LLM 调用，**别一次全跑**。
 
 ## 贯穿全课的统一约定
 
@@ -81,6 +85,7 @@ npx tsc --noEmit
 | 07 | `src/07-multi-agent/` | 单 Agent / 规划者执行者 / 子 Agent 上下文隔离 |
 | 08 | `src/08-framework/` | LangChain.js 复刻前面所学 |
 | 09 | `src/09-plan-and-execute/` | Planner / Executor / Replanner + 三个旋钮对账 |
+| 10 | `src/10-langgraph/` | StateGraph 图化（state/node/edge/reducer）、条件边 ReAct 循环、interrupt 中断恢复、plan-execute 图化 |
 
 几个容易改坏的点：
 
@@ -89,10 +94,11 @@ npx tsc --noEmit
 - **06 课 MCP**：server 的 **stdout 是协议通道**，所有日志必须 `console.error`；没有 `id` 的消息是通知，绝不能回复；工具自身失败回 `result + isError`，协议级失败才回 `error` 字段。SDK v2 的写法是 `serveStdio(() => server)` 工厂函数 + `inputSchema: z.object({...})`（v1 的裸 shape 写法不兼容）。客户端 spawn 子进程统一用 `process.execPath` + `--import tsx`，保证 Windows 下行为一致：手写版在 `finally` 里 `stdin.end()` + `kill()`，SDK 版用 `await client.close()` —— 两条路都必须收尾，否则子进程挂着不退。
 - **07 / 09 课**：`get_sales('广州')` 是**确定性失败**（永远返回 error），这是为「重规划/改道」设计的教学锚点，不要改成随机失败或修好它。两课用同一道题，方便互相对照。
 - **09 课**：`PlanSchema.steps` 有 `.max(6)` 硬上限；`ReplanOutputSchema` 是 `discriminatedUnion('type', ...)`，`continue` / `finish` 由模型决定；还有计划指纹去重 + `MAX_REPLAN = 6` 熔断两道护栏。同一目录下的 `plan-and-execute.md` 是配套讲义（模式对比、三个旋钮、参考链接），改机制时要一起改。
+- **10 课**：四个 demo 用 argv 分档（默认只跑 Demo 1）；Demo 2 是**故意**手写 messages reducer 而不用 `MessagesAnnotation` / `ToolNode`（作为「循环在你手里」的对照，别"优化"掉）；Demo 3 的 `interrupt()` 之前不能有副作用（恢复时节点会从头重跑），且一次批准可能不够（模型会再点一轮，需 `while (isInterrupted(...))`）；Demo 4 的 `jsonCall` 是**故意**手写的——`withStructuredOutput` 在 deepseek-flash 思考模式下三种 method 全 400；节点名不能与 state 字段重名；`get_sales('广州')` 与 07/09 共用同一失败锚点。同一目录 `langgraph.md` 是配套讲义（词汇表、四张图、版本坑清单）。
 
 ## 代码风格
 
 - 全中文注释；`★` 专门标记「这里有个坑 / 这里是要带走的一句话」，新踩的坑沿用这个标记。
 - ESM + 顶层 `await`（`"type": "module"`）；读同目录文件用 `fileURLToPath(import.meta.url)`，不要 `__dirname`。
 - 命令输出用 `=` / `─` 分隔和缩进对齐，是课程展示效果的一部分，改动输出格式时保持这种可读性。
-- 依赖变更要谨慎：`@langchain/*` 与 `@modelcontextprotocol/*` 都锁在 v1/v2 的特定写法上（见上），大版本升级会直接让 06、08 课失效。
+- 依赖变更要谨慎：`@langchain/*` 与 `@modelcontextprotocol/*` 都锁在 v1/v2 的特定写法上（见上），大版本升级会直接让 06、08 课失效。10 课锁在 `@langchain/langgraph` 1.4.15 的根路径导法（`MemorySaver` / `interrupt` / `Command` 都从包根导出，**没有** `./checkpoint`、`./func` 子路径）。

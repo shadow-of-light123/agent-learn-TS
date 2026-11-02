@@ -18,6 +18,7 @@
 | 07 | Multi-Agent | 规划者/执行者、子 Agent、上下文隔离 | ✅ |
 | 08 | Framework | 用 LangChain.js 复刻前面所学（手写 vs 框架对照） | ✅ |
 | 09 | Plan-and-Execute | Planner / Executor / Replanner 三角色，三个旋钮的实测对账 | ✅ |
+| 10 | LangGraph | 把 Agent 循环画成图：StateGraph、条件边、interrupt 中断恢复、plan-execute 图化 | ✅ |
 
 ## 运行方式
 
@@ -30,7 +31,7 @@ cp .env.example .env   # 然后填入你的 key
 每课都有独立入口，直接跑即可：
 
 ```bash
-# 01 ~ 09 主线
+# 01 ~ 10 主线
 npm run l1     # Hello LLM（+ npm run l1:stream 看流式）
 npm run l2     # Tool Calling
 npm run l3     # Agent Loop
@@ -40,6 +41,7 @@ npm run l6:agent  # MCP：接上外部工具跑 Agent Loop
 npm run l7     # Multi-Agent（默认跑子 Agent 那档）
 npm run l8     # Framework：用 LangChain 复刻（+ npm run l8:stream）
 npm run l9     # Plan-and-Execute（默认跑完整三角色）
+npm run l10    # LangGraph：把 Agent 循环画成图（默认最小图；分档见下）
 
 # 单独看某一层
 npm run l5:explore   # 只看检索层，不调 LLM —— 先确认检索准不准
@@ -72,6 +74,18 @@ npm run l9 -- 3   # 换重规划时机：每步都 replan（跑完会跟每轮 r
 > 第 09 课跟第 07 课 demo 2 是**同一道题**（对比北京/上海/广州，广州数据源必然失败），
 > 可以直接对照着看：07 课有 Planner + Executor 但缺 Replanner，
 > 09 课补上的正是"何时收工由模型自己决定"这半个角色。
+
+第 10 课是 LangGraph 专场，按档跑（前三个用第 08 课的天气题，Demo 4 用 07/09 的销售题）：
+
+```bash
+npm run l10        # Demo 1：最小图（state / node / edge / compile）
+npm run l10 -- 2   # Demo 2：ReAct 循环图（★ 本课重点，条件边 + messages reducer）
+npm run l10 -- 3   # Demo 3：人在环里（interrupt / Command resume / getStateHistory 倒带）
+npm run l10 -- 4   # Demo 4：把第 09 课的 plan-execute 画成图，并跟手写版对账
+```
+
+> 第 10 课也是多轮调用，**按档跑，别一次全跑**。配套讲义见
+> [src/10-langgraph/langgraph.md](src/10-langgraph/langgraph.md)。
 
 ## 你已有的基础如何对应
 
